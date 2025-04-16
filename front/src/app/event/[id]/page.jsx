@@ -11,7 +11,6 @@ const EventDetails = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [activeImage, setActiveImage] = useState(0);
-  const [activeImage2, setActiveImage2] = useState(0);
   const [viewMode, setViewMode] = useState('normal'); // normal or panorama
   const router = useRouter(); // Initialize useRouter
 
@@ -24,9 +23,9 @@ const EventDetails = () => {
         }
         const data = await response.json();
         setEvent(data);
-        setLoading(false);
       } catch (err) {
         setError(err.message);
+      } finally {
         setLoading(false);
       }
     };
@@ -47,8 +46,9 @@ const EventDetails = () => {
     setActiveImage(index);
   };
 
-  const handleViewModeToggle = () => {
-    setViewMode(viewMode === 'normal' ? 'panorama' : 'normal');
+  const handleViewModeToggle = (mode) => {
+    setViewMode(mode);
+    setActiveImage(0); // Reset active image when switching modes
   };
 
   if (loading) {
@@ -97,14 +97,16 @@ const EventDetails = () => {
         <div className="view-mode-toggle">
           <button 
             className={viewMode === 'normal' ? 'active' : ''} 
-            onClick={() => setViewMode('normal')}
+            onClick={() => handleViewModeToggle('normal')}
+            aria-label="Switch to Standard Images"
           >
             Standard Images
           </button>
           <button 
             className={viewMode === 'panorama' ? 'active' : ''} 
-            onClick={() => setViewMode('panorama')}
+            onClick={() => handleViewModeToggle('panorama')}
             disabled={!event.panoramaImages || event.panoramaImages.length === 0}
+            aria-label="Switch to 360° View"
           >
             360° View
           </button>
@@ -113,15 +115,15 @@ const EventDetails = () => {
         <div className={`event-main-image ${viewMode === 'panorama' ? 'panorama-container' : ''}`}>
           {viewMode === 'panorama' ? (
             event.panoramaImages && event.panoramaImages.length > 0 ? (
-              <PanoramaViewer imageUrl={event.panoramaImages[activeImage2]} />
+              <PanoramaViewer imageUrl={event.panoramaImages[activeImage]} />
             ) : (
               <div className="no-image-large">No Panorama Images Available</div>
             )
           ) : (
             images && images.length > 0 ? (
               <img 
-                src={images[activeImage2]} 
-                alt={`${event.eventName} - Image ${activeImage2 + 1}`} 
+                src={images[activeImage]} 
+                alt={`${event.eventName} - Image ${activeImage + 1}`} 
                 className="standard-image"
               />
             ) : (
